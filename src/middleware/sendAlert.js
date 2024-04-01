@@ -1,14 +1,12 @@
-const { mqttClient } = require('../app.js');
 function mqttAlertMiddleware(mqttClient) {
-    return (req, res, next) => {
-      req.sendAlert = (prisonerId, message) => {
-        const topic = `prisoner-alert/${prisonerId}`;
-        mqttClient.publish(topic, message);
-        console.log(`Sent alert for prisoner '${prisonerId}': ${message}`);
-      };
-      next();
+  return (req, res, next) => {
+    req.sendAlert = (prisonerId, message) => {
+      const topic = `prisoner-alert/${prisonerId}`;
+      mqttClient.publish(topic, message);
+      console.log(`Sent alert for prisoner '${prisonerId}': ${message}`);
     };
-  }
-  
-  module.exports = mqttAlertMiddleware;
-  
+    next();
+  };
+}
+
+module.exports = mqttAlertMiddleware;

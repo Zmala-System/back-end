@@ -7,8 +7,8 @@ module.exports = gql`
                 name: String!
                 dateOfImprisonment: String!
                 authorizedLocations: [[Location]]
-                currentLocations : [Location]
-                deviceId : String!
+                currentLocations: [Location]
+                deviceId: String!
             } 
 
             type Admin {
