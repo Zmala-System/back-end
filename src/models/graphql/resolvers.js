@@ -8,9 +8,9 @@ module.exports = {
 
     Query: {
         getPrisonerByDeviceId: async (_, { deviceId }, { req }) => {
-            //if (!req.isAuth) {
-              //  throw new AuthenticationError("Not authenticated");
-            //} 
+            if (!req.isAuth) {
+                throw new AuthenticationError("Not authenticated");
+            } 
 
             try {
                 const admin = await Admin.findById(req.userId).exec();
@@ -36,9 +36,9 @@ module.exports = {
         },
 
         getPrisoners: async (_, args, { req }) => {
-            //if (!req.isAuth) {
-                //throw new AuthenticationError("Not authenticated");
-            //}
+            if (!req.isAuth) {
+                throw new AuthenticationError("Not authenticated");
+            }
             
             try {
                 const admin = await Admin.findById(req.userId).exec();
@@ -60,9 +60,9 @@ module.exports = {
 
     Mutation: {
         async createPrisoner(_, { prisonerInput: { name, dateOfImprisonment, authorizedLocations, currentLocations, deviceId } }, { req }) {
-            //if (!req.isAuth) {
-                //throw new AuthenticationError("Not authenticated");
-            //}
+            if (!req.isAuth) {
+                throw new AuthenticationError("Not authenticated");
+            }
             
             try {
                 const foundPrisoner = await Prisoner.findOne({ name: name }).exec();
@@ -92,9 +92,9 @@ module.exports = {
             }
         },
         async updatePrisonerInfo (_, { prisonerInput: { name, dateOfImprisonment, authorizedLocations, currentLocations, deviceId } },{req}) {
-            //if (!req.isAuth) {
-                //throw new AuthenticationError("Not authenticated");
-            //}   
+            if (!req.isAuth) {
+                throw new AuthenticationError("Not authenticated");
+            }   
             try{   
                 
             const admin = await Admin.findById(req.userId).exec();
@@ -133,9 +133,9 @@ module.exports = {
           },
 
         async  addPrisonerLocation (_, { Username, authorizedLocations } , { req } ) {
-            //if (!req.isAuth) {
-                //throw new AuthenticationError("Not authenticated");
-            //}
+            if (!req.isAuth) {
+                throw new AuthenticationError("Not authenticated");
+            }
 
             try {
                 const admin = await Admin.findById(req.userId).exec();
@@ -168,9 +168,9 @@ module.exports = {
         },
 
         async  deletePrisoner (_, { deviceId } , { req } ) {
-            //if (!req.isAuth) {
-                //throw new AuthenticationError("Not authenticated");
-            //}
+            if (!req.isAuth) {
+                throw new AuthenticationError("Not authenticated");
+            }
 
             try {
                 const admin = await Admin.findById(req.userId).exec();
