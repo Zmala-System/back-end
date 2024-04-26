@@ -45,7 +45,6 @@ module.exports = gql`
                 name: String!
                 dateOfImprisonment: String!
                 authorizedLocations: [[LocationInput]]
-                currentLocations: [LocationInput]
                 deviceId: String!
             }
 
