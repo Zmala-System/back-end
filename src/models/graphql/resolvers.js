@@ -166,7 +166,6 @@ module.exports = {
             if (!req.isAuth) {
                 throw new AuthenticationError("Not authenticated");
             }
-            console.log("admin");
 
             try {
                 const admin = await Admin.findById(req.userId).exec();
