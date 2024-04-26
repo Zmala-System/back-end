@@ -11,7 +11,7 @@ module.exports = {
             if (!req.isAuth) {
                 throw new AuthenticationError("Not authenticated");
             } 
-
+           
             try {
                 const admin = await Admin.findById(req.userId).exec();
                 
@@ -39,7 +39,6 @@ module.exports = {
             if (!req.isAuth) {
                 throw new AuthenticationError("Not authenticated");
             }
-            
             try {
                 const admin = await Admin.findById(req.userId).exec();
                 
@@ -59,16 +58,16 @@ module.exports = {
 
 
     Mutation: {
-        async createPrisoner(_, { prisonerInput: { name, dateOfImprisonment, authorizedLocations, currentLocations, deviceId } }, { req }) {
+        async createPrisoner(_, { prisonerInput: { name, dateOfImprisonment, authorizedLocations, deviceId } }, { req }) {
             if (!req.isAuth) {
                 throw new AuthenticationError("Not authenticated");
             }
             
             try {
-                const foundPrisoner = await Prisoner.findOne({ name: name }).exec();
+                const foundPrisoner = await Prisoner.findOne({ deviceId: deviceId }).exec();
             
                 if (foundPrisoner) {
-                    throw new Error (`A prisoner named "${name}" already exists in the database.`);
+                    throw new Error (`A prisoner device id "${deviceId}" already exists in the database.`);
                 } 
             
                 const prisoner = {
@@ -79,7 +78,6 @@ module.exports = {
             
                 const newPrisoner = new Prisoner(prisoner);
                 newPrisoner.authorizedLocations.push(...authorizedLocations);
-                newPrisoner.currentLocations.push(...currentLocations);
                 const res = await newPrisoner.save();
                 const existingAdmin = await Admin.findById(req.userId).exec();
                 existingAdmin.prisoners.push(res);
@@ -91,7 +89,7 @@ module.exports = {
                 throw new AuthenticationError('Authentication failed.');
             }
         },
-        async updatePrisonerInfo (_, { prisonerInput: { name, dateOfImprisonment, authorizedLocations, currentLocations, deviceId } },{req}) {
+        async updatePrisonerInfo (_, { prisonerInput: { name, dateOfImprisonment, authorizedLocations, deviceId } },{req}) {
             if (!req.isAuth) {
                 throw new AuthenticationError("Not authenticated");
             }   
@@ -109,19 +107,16 @@ module.exports = {
             }
 
             const prisonerToUpdate = admin.prisoners[prisonerIndex];
-            if (name !== undefined) {
+            if (name !== "") {
               prisonerToUpdate.name = name;
             }
-            if (dateOfImprisonment !== undefined) {
+            if (dateOfImprisonment !== "") {
               prisonerToUpdate.dateOfImprisonment = dateOfImprisonment;
             }
-            if (authorizedLocations !== undefined) {
-              prisonerToUpdate.authorizedLocations = authorizedLocations;
+            if (_.isEmpty(authorizedLocations)) {
+              prisonerToUpdate.authorizedLocations = [authorizedLocations];
             }
-            if (currentLocations !== undefined) {
-              prisonerToUpdate.currentLocations = currentLocations;
-            }
-            if (deviceId !== undefined) {
+            if (deviceId !== "") {
                 prisonerToUpdate.deviceId = deviceId;
               }
       
@@ -171,19 +166,19 @@ module.exports = {
             if (!req.isAuth) {
                 throw new AuthenticationError("Not authenticated");
             }
+            console.log("admin");
 
             try {
                 const admin = await Admin.findById(req.userId).exec();
-                
+
                 if (!admin) {
                   throw new Error('Admin not found');
                 }
 
-                const Prisoners = admin.prisoners;
                 const foundPrisonerIndex = admin.prisoners.findIndex(prisoner => prisoner.deviceId === deviceId);
-
+                
                 if (foundPrisonerIndex === -1) {
-                    throw new Error(`Prisoner with name '${deviceId}' not found.`);
+                    throw new Error(`Prisoner with device id '${deviceId}' not found.`);
                 }
                 
                 admin.prisoners.splice(foundPrisonerIndex, 1);

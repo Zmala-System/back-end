@@ -8,7 +8,7 @@ const isAuth = require("./src/middleware/is-auth.js");
 const sendAlert = require("./src/middleware/sendAlert.js");
 const geolib = require('geolib');
 const bodyParser = require('body-parser');
-const dbURI = 'mongodb+srv://Safouane:Safouane2004@projet2cp.so6lhs3.mongodb.net/?retryWrites=true&w=majority&appName=Projet2CP'
+//const dbURI = 'mongodb+srv://Safouane:Safouane2004@projet2cp.so6lhs3.mongodb.net/?retryWrites=true&w=majority&appName=Projet2CP'
 const mqtt = require('mqtt');
 const { Prisoner } = require("./src/models/Prisoners.js");
 const { SubscriptionServer } = require("subscriptions-transport-ws");
@@ -32,7 +32,7 @@ const { DB_URI, DB_NAME } = process.env;
 
 const StartMQTT = () => {
 
-  const mqttClient = mqtt.connect('mqtt://8.tcp.ngrok.io:19594'); // TODO: Change Mqtt broker address
+  const mqttClient = mqtt.connect('mqtt://broker.hivemq.com:1883'); // TODO: Change Mqtt broker address
 
   mqttClient.on('connect', () => {
     console.log('Connected to MQTT broker');
@@ -131,6 +131,7 @@ const StartMQTT = () => {
   })
 
   app.use(cors())
+  app.use(isAuth);
 
   await server.start();
 

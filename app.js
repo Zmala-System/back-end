@@ -8,11 +8,11 @@ const sendAlert= requre("./src/middleware/sendAlert.js");
 const geolib = require('geolib');
 const { startStandaloneServer } = require("@apollo/server/standalone");
 const bodyParser = require('body-parser');
-const dbURI = 'mongodb+srv://Safouane:Safouane2004@projet2cp.so6lhs3.mongodb.net/?retryWrites=true&w=majority&appName=Projet2CP'
+//const dbURI = 'mongodb+srv://Safouane:Safouane2004@projet2cp.so6lhs3.mongodb.net/?retryWrites=true&w=majority&appName=Projet2CP'
 const mqtt = require('mqtt');
-mongoose.connect(dbURI, { useNewUrlParser: true })
-.then((result) => console.log('connected to the db'))
-.catch((err) => console.log(err));
+//mongoose.connect(dbURI, { useNewUrlParser: true })
+//.then((result) => console.log('connected to the db'))
+//.catch((err) => console.log(err));
 
 async function startApolloServer() {
   const server = new ApolloServer({ 

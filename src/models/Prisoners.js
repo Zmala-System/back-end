@@ -17,7 +17,7 @@ const prisoner = new  prisonerSchema({
         [{
           latitude: { type: Number, required: true },
           longitude: { type: Number, required: true },
-        }]
+        }]  
       ],
       currentLocations: 
       [

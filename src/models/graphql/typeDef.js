@@ -7,7 +7,6 @@ module.exports = gql`
                 name: String!
                 dateOfImprisonment: String!
                 authorizedLocations: [[Location]]
-                currentLocations: [Location]
                 deviceId: String!
             } 
 
@@ -33,13 +32,12 @@ module.exports = gql`
 
             type Mutation {
                 createPrisoner(prisonerInput: PrisonerInput!): Prisoner!
-                deletePrisoner(Username: String!): Prisoner!
+                deletePrisoner(deviceId: String!): Prisoner!
                 registerAdmin(registerAdminInput: RegisterAdminInput!): AuthData!
                 loginAdmin(loginAdminInput: LoginAdminInput!): AuthData!
                 addPrisonerLocation(Username: String!, authorizedLocations: [[LocationInput]]): Prisoner!
                 isInAuthorizedLocation(currentPoint: LocationInput!,  Username: String!): Boolean!
                 updatePrisonerInfo(prisonerInput: PrisonerInput!): Prisoner!
-
             }
        
             input PrisonerInput  {
