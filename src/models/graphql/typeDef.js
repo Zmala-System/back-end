@@ -36,9 +36,9 @@ module.exports = gql`
                 deletePrisoner(deviceId: String!): Prisoner!
                 registerAdmin(registerAdminInput: RegisterAdminInput!): AuthData!
                 loginAdmin(loginAdminInput: LoginAdminInput!): AuthData!
-                addPrisonerLocation(Username: String!, authorizedLocations: [[LocationInput]]): Prisoner!
-                isInAuthorizedLocation(currentPoint: LocationInput!,  Username: String!): Boolean!
-                updatePrisonerInfo(prisonerInput: PrisonerInput!): Prisoner!
+                addPrisonerLocation(deviceId: String!, authorizedLocations: [[LocationInput]]): Prisoner!
+                isInAuthorizedLocation(currentPoint: LocationInput!,  deviceId: String!): Boolean!
+                updatePrisonerInfo(DeviceId:String! ,prisonerInput: PrisonerInput!): Prisoner!
             }
        
             input PrisonerInput  {

@@ -3,6 +3,7 @@ const { ApolloError, AuthenticationError } = require("apollo-server-errors");
 const geolib = require('geolib');
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { isEmpty } = require("lodash");
 
 module.exports = {
 
@@ -89,45 +90,61 @@ module.exports = {
                 throw new AuthenticationError('Authentication failed.');
             }
         },
-        async updatePrisonerInfo (_, { prisonerInput: { name, dateOfImprisonment, authorizedLocations, deviceId } },{req}) {
+        async updatePrisonerInfo (_, { DeviceId, prisonerInput: { name, dateOfImprisonment, authorizedLocations, deviceId } },{req}) {
             if (!req.isAuth) {
                 throw new AuthenticationError("Not authenticated");
             }   
+            
             try{   
                 
-            const admin = await Admin.findById(req.userId).exec();
-            if (!admin) {
-                throw new Error('Admin not found');
-              }
+                const admin = await Admin.findById(req.userId).exec();
+                
+                if (!admin) {
+                    throw new Error('Admin not found');
+                }
 
-            const prisonerIndex = admin.prisoners.findIndex(prisoner => prisoner.deviceId === deviceId);
-      
-            if (prisonerIndex === -1) {
-              throw new Error('Prisoner not found');
-            }
+                const prisonerIndex = admin.prisoners.findIndex(prisoner => prisoner.deviceId === DeviceId);
 
-            const prisonerToUpdate = admin.prisoners[prisonerIndex];
-            if (name !== "") {
-              prisonerToUpdate.name = name;
-            }
-            if (dateOfImprisonment !== "") {
-              prisonerToUpdate.dateOfImprisonment = dateOfImprisonment;
-            }
-            if (_.isEmpty(authorizedLocations)) {
-              prisonerToUpdate.authorizedLocations = [authorizedLocations];
-            }
-            if (deviceId !== "") {
-                prisonerToUpdate.deviceId = deviceId;
-              }
-      
-            return prisonerToUpdate;}
-            catch(error){
+                if (prisonerIndex === -1) {
+                    throw new Error('Prisoner not found');
+                }
+
+                const prisoner = await Prisoner.findOne({ deviceId: DeviceId });
+
+                const prisonerToUpdate = admin.prisoners[prisonerIndex];
+
+                if (name !== "") {
+                    prisonerToUpdate.name = name;
+                    prisoner.name = name;
+                }
+
+                if (dateOfImprisonment !== "") {
+                    prisonerToUpdate.dateOfImprisonment = dateOfImprisonment;
+                    prisoner.dateOfImprisonment = dateOfImprisonment;
+                }
+
+                if (!isEmpty(authorizedLocations)) {
+                    prisonerToUpdate.authorizedLocations = authorizedLocations;
+                    prisoner.authorizedLocations = authorizedLocations;
+                }
+
+                if (deviceId !== "") {
+                    prisonerToUpdate.deviceId = deviceId;
+                    prisoner.deviceId = deviceId;
+                }
+
+                await prisoner.save();
+                await admin.save();
+
+                return prisoner;}
+
+        catch(error){
                 console.error('Token verification failed:', error.message);
                 throw new AuthenticationError('Authentication failed.');
             }
           },
 
-        async  addPrisonerLocation (_, { Username, authorizedLocations } , { req } ) {
+        async  addPrisonerLocation (_, { deviceId, authorizedLocations } , { req } ) {
             if (!req.isAuth) {
                 throw new AuthenticationError("Not authenticated");
             }
@@ -139,17 +156,16 @@ module.exports = {
                   throw new Error('Admin not found');
                 }
 
-                const Prisoners = admin.prisoners;
-                const foundPrisoner = admin.prisoners.find(prisoner => prisoner.name === Username);
+                const foundPrisoner = admin.prisoners.find(prisoner => prisoner.deviceId === deviceId);
                 
                 if (!foundPrisoner) {
-                    throw new Error(`Prisoner with name '${Username}' not found.`);
+                    throw new Error(`Prisoner with device id '${deviceId}' not found.`);
                 }
                 
                 foundPrisoner.authorizedLocations.push(...authorizedLocations);
                 await admin.save();
 
-                const prisoner = await Prisoner.findOne({ name: Username });
+                const prisoner = await Prisoner.findOne({ deviceId: deviceId });
                 prisoner.authorizedLocations.push(...authorizedLocations);
                 
                 const res = await prisoner.save();
