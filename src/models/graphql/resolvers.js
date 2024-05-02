@@ -230,6 +230,35 @@ module.exports = {
             return false;
         },
 
+        async changeAdminPassword(_, {password, confirmPassword}, { req }) {
+            if (!req.isAuth) {
+                throw new AuthenticationError("Not authenticated");
+            }
+
+            try {
+                const admin = await Admin.findById(req.userId).exec();
+                
+                if (!admin) {
+                  throw new Error('Admin not found');
+                }
+
+                if (password  !== confirmPassword) {
+                    throw new ApolloError(`Passwords do not match!`);
+                }
+
+                const encryptedPassword = await bcrypt.hashSync(password, 10);
+                
+                admin.password = encryptedPassword;
+                await admin.save();
+                
+                return admin
+            }
+            catch (error) {
+                console.error('Token verification failed:', error.message);
+                throw new AuthenticationError('Authentication failed.');
+            }
+        },
+
         async registerAdmin(_, { registerAdminInput: { username, email, password, confirmPassword } }) {
             const oldAdminByEmail = await Admin.findOne({ email: email }).exec();
             const oldAdminByUsername = await Admin.findOne({ username: username }).exec();
