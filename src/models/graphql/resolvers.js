@@ -4,6 +4,7 @@ const geolib = require('geolib');
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { isEmpty } = require("lodash");
+const pubsub = require("../../utils/pubsub.js");
 
 module.exports = {
 
@@ -11,18 +12,18 @@ module.exports = {
         getPrisonerByDeviceId: async (_, { deviceId }, { req }) => {
             if (!req.isAuth) {
                 throw new AuthenticationError("Not authenticated");
-            } 
-           
+            }
+
             try {
                 const admin = await Admin.findById(req.userId).exec();
-                
+
                 if (!admin) {
-                  throw new Error('Admin not found');
+                    throw new Error('Admin not found');
                 }
 
                 const Prisoners = admin.prisoners;
                 const foundPrisoner = admin.prisoners.find(prisoner => prisoner.deviceId === deviceId);
-                
+
                 if (!foundPrisoner) {
                     throw new Error(`Prisoner with name '${deviceId}' not found.`);
                 }
@@ -42,41 +43,45 @@ module.exports = {
             }
             try {
                 const admin = await Admin.findById(req.userId).exec();
-                
+
                 if (!admin) {
-                  throw new Error('Admin not found');
+                    throw new Error('Admin not found');
                 }
-        
+
                 const Prisoners = admin.prisoners;
 
                 return Prisoners;
-              } catch (error) {
+            } catch (error) {
                 console.error(error);
                 throw new Error('Failed to retrieve prisoners');
-              }
+            }
+        },
+        testSubscriptions: async (_, { topicName }, __) => {
+            console.log(topicName)
+            await pubsub.publish(topicName, { message: "I m publishing test for subscription" });
+            return true;
         }
     },
-
 
     Mutation: {
         async createPrisoner(_, { prisonerInput: { name, dateOfImprisonment, authorizedLocations, deviceId } }, { req }) {
             if (!req.isAuth) {
                 throw new AuthenticationError("Not authenticated");
             }
-            
+
             try {
                 const foundPrisoner = await Prisoner.findOne({ deviceId: deviceId }).exec();
-            
+
                 if (foundPrisoner) {
-                    throw new Error (`A prisoner device id "${deviceId}" already exists in the database.`);
-                } 
-            
+                    throw new Error(`A prisoner device id "${deviceId}" already exists in the database.`);
+                }
+
                 const prisoner = {
                     name: name,
                     dateOfImprisonment: dateOfImprisonment,
-                    deviceId : deviceId,
+                    deviceId: deviceId,
                 }
-            
+
                 const newPrisoner = new Prisoner(prisoner);
                 newPrisoner.authorizedLocations.push(...authorizedLocations);
                 const res = await newPrisoner.save();
@@ -90,15 +95,15 @@ module.exports = {
                 throw new AuthenticationError('Authentication failed.');
             }
         },
-        async updatePrisonerInfo (_, { DeviceId, prisonerInput: { name, dateOfImprisonment, authorizedLocations, deviceId } },{req}) {
+        async updatePrisonerInfo(_, { DeviceId, prisonerInput: { name, dateOfImprisonment, authorizedLocations, deviceId } }, { req }) {
             if (!req.isAuth) {
                 throw new AuthenticationError("Not authenticated");
-            }   
-            
-            try{   
-                
+            }
+
+            try {
+
                 const admin = await Admin.findById(req.userId).exec();
-                
+
                 if (!admin) {
                     throw new Error('Admin not found');
                 }
@@ -136,38 +141,39 @@ module.exports = {
                 await prisoner.save();
                 await admin.save();
 
-                return prisoner;}
+                return prisoner;
+            }
 
-        catch(error){
+            catch (error) {
                 console.error('Token verification failed:', error.message);
                 throw new AuthenticationError('Authentication failed.');
             }
-          },
+        },
 
-        async  addPrisonerLocation (_, { deviceId, authorizedLocations } , { req } ) {
+        async addPrisonerLocation(_, { deviceId, authorizedLocations }, { req }) {
             if (!req.isAuth) {
                 throw new AuthenticationError("Not authenticated");
             }
 
             try {
                 const admin = await Admin.findById(req.userId).exec();
-                
+
                 if (!admin) {
-                  throw new Error('Admin not found');
+                    throw new Error('Admin not found');
                 }
 
                 const foundPrisoner = admin.prisoners.find(prisoner => prisoner.deviceId === deviceId);
-                
+
                 if (!foundPrisoner) {
                     throw new Error(`Prisoner with device id '${deviceId}' not found.`);
                 }
-                
+
                 foundPrisoner.authorizedLocations.push(...authorizedLocations);
                 await admin.save();
 
                 const prisoner = await Prisoner.findOne({ deviceId: deviceId });
                 prisoner.authorizedLocations.push(...authorizedLocations);
-                
+
                 const res = await prisoner.save();
                 return res
             }
@@ -178,7 +184,7 @@ module.exports = {
 
         },
 
-        async  deletePrisoner (_, { deviceId } , { req } ) {
+        async deletePrisoner(_, { deviceId }, { req }) {
             if (!req.isAuth) {
                 throw new AuthenticationError("Not authenticated");
             }
@@ -187,15 +193,15 @@ module.exports = {
                 const admin = await Admin.findById(req.userId).exec();
 
                 if (!admin) {
-                  throw new Error('Admin not found');
+                    throw new Error('Admin not found');
                 }
 
                 const foundPrisonerIndex = admin.prisoners.findIndex(prisoner => prisoner.deviceId === deviceId);
-                
+
                 if (foundPrisonerIndex === -1) {
                     throw new Error(`Prisoner with device id '${deviceId}' not found.`);
                 }
-                
+
                 admin.prisoners.splice(foundPrisonerIndex, 1);
                 await admin.save();
 
@@ -212,45 +218,45 @@ module.exports = {
 
         async isInAuthorizedLocation(_, { currentPoint, deviceId }) {
 
-            const foundPrisoner = await Prisoner.findOne({deviceId: deviceId});
-        
+            const foundPrisoner = await Prisoner.findOne({ deviceId: deviceId });
+
             for (const polygon of foundPrisoner.authorizedLocations) {
                 if (!Array.isArray(polygon) || polygon.length < 3) {
                     throw new Error('Invalid polygon. Provide a polygon with at least 3 vertices.');
                 }
-                
+
                 const formattedPolygon = polygon.map(({ latitude, longitude }) => ({ latitude, longitude }));
                 const isInside = geolib.isPointInPolygon(currentPoint, formattedPolygon);
-                
+
                 if (isInside) {
                     return true;
                 }
             }
-        
+
             return false;
         },
 
-        async changeAdminPassword(_, {password, confirmPassword}, { req }) {
+        async changeAdminPassword(_, { password, confirmPassword }, { req }) {
             if (!req.isAuth) {
                 throw new AuthenticationError("Not authenticated");
             }
 
             try {
                 const admin = await Admin.findById(req.userId).exec();
-                
+
                 if (!admin) {
-                  throw new Error('Admin not found');
+                    throw new Error('Admin not found');
                 }
 
-                if (password  !== confirmPassword) {
+                if (password !== confirmPassword) {
                     throw new ApolloError(`Passwords do not match!`);
                 }
 
                 const encryptedPassword = await bcrypt.hashSync(password, 10);
-                
+
                 admin.password = encryptedPassword;
                 await admin.save();
-                
+
                 return admin
             }
             catch (error) {
@@ -267,7 +273,7 @@ module.exports = {
                 throw new ApolloError(`Admin already registered`);
             }
 
-            if (password  !== confirmPassword) {
+            if (password !== confirmPassword) {
                 throw new ApolloError(`Passwords do not match!`);
             }
 
@@ -278,7 +284,7 @@ module.exports = {
                 email: email.toLowerCase(),
                 password: encryptedPassword,
             }
-                    
+
             const newAdmin = new Admin(admin);
 
             const token = jwt.sign(
@@ -290,7 +296,7 @@ module.exports = {
                 {
                     expiresIn: "2h"
                 });
-                    
+
             newAdmin.token = token;
             const res = await newAdmin.save();
 
@@ -304,14 +310,14 @@ module.exports = {
                 tokenExpiration: 2
             }
 
-            },
+        },
 
         async loginAdmin(_, { loginAdminInput: { email, password } }) {
-            
+
             const existingAdmin = await Admin.findOne({ email: email }).exec();
 
-            if (existingAdmin && (await bcrypt.compare(password,existingAdmin.password))) {
-                
+            if (existingAdmin && (await bcrypt.compare(password, existingAdmin.password))) {
+
                 const token = jwt.sign(
                     {
                         userId: existingAdmin._id,
@@ -321,7 +327,7 @@ module.exports = {
                     {
                         expiresIn: "2h"
                     });
-                
+
                 existingAdmin.token = token;
                 const res = await existingAdmin.save();
 
@@ -335,10 +341,24 @@ module.exports = {
                     tokenExpiration: 2
                 }
             }
-            else{
+            else {
                 throw new ApolloError('Incorrect password', 'INCORRECT_PASSWORD')
             }
 
         }
-    }
+    },
+    Subscription: {
+        subscriptionTest: {
+            subscribe: (_parent, { topicName }, _context, _info) => {
+                const asyncIterator = pubsub.asyncIterator(topicName);
+                return asyncIterator;
+            },
+            resolve: (payload) => {
+                // This function is called whenever a new event is published
+                console.log(payload)
+                return payload.message; // Assuming message is the field you want to return
+            },
+        },
+    },
+
 }

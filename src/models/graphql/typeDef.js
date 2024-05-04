@@ -29,6 +29,7 @@ module.exports = gql`
             type Query {
                 getPrisonerByDeviceId(Username:String!): Prisoner
                 getPrisoners: [Prisoner!]
+                testSubscriptions(topicName:String): Boolean
             }
 
             type Mutation {
@@ -41,6 +42,11 @@ module.exports = gql`
                 isInAuthorizedLocation(currentPoint: LocationInput!,  deviceId: String!): Boolean!
                 updatePrisonerInfo(DeviceId:String! ,prisonerInput: PrisonerInput!): Prisoner!
             }
+
+            type Subscription {
+                subscriptionTest(topicName: String!): String
+            }
+
        
             input PrisonerInput  {
                 name: String!
@@ -69,6 +75,13 @@ module.exports = gql`
             type Location {
                 latitude: Float
                 longitude: Float
+            }
+
+            
+            schema {
+                query: Query
+                mutation: Mutation
+                subscription: Subscription
             }
 
 `
