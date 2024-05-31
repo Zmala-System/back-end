@@ -1,75 +1,75 @@
-const mongoose = require('mongoose');
-const prisonerSchema  = mongoose.Schema;
+const mongoose = require("mongoose");
+const prisonerSchema = mongoose.Schema;
 const adminSchema = mongoose.Schema;
 
-const prisoner = new  prisonerSchema({
-    
+const prisoner = new prisonerSchema(
+  {
     name: {
-        type: String,
-        required: true,
-      },
+      type: String,
+      required: true,
+    },
     dateOfImprisonment: {
-        type: String,
-        required: true,
-      },
-    authorizedLocations: 
-      [
-        [{
-          latitude: { type: Number, required: true },
-          longitude: { type: Number, required: true },
-        }]  
-      ],
-      currentLocations: 
+      type: String,
+      required: true,
+    },
+    authorizedLocations: [
       [
         {
           latitude: { type: Number, required: true },
           longitude: { type: Number, required: true },
-        }
+        },
       ],
-    deviceId:{
-      type:String,
-      required:true
-    },
-    alerts:[
+    ],
+    currentLocations: [
       {
-        type:String,
-      }
-    ]
+        latitude: { type: Number, required: true },
+        longitude: { type: Number, required: true },
+      },
+    ],
+    deviceId: {
+      type: String,
+      required: true,
     },
-    { 
-      timestamps: true 
-    }
-    );
+    alerts: [
+      {
+        type: String,
+      },
+    ],
+  },
+  {
+    timestamps: true,
+  }
+);
 
-const admin = new adminSchema({
-    
-    username:{
+const admin = new adminSchema(
+  {
+    username: {
       type: String,
       required: true,
       unique: true,
     },
-    email:{
+    email: {
       type: String,
       required: true,
       unique: true,
     },
-    password:{
+    password: {
       type: String,
       required: true,
     },
-    token:{
+    token: {
       type: String,
       required: true,
       unique: true,
     },
     prisoners: [prisoner],
-  
   },
-  { 
-    timestamps: true 
-  })
-    
-    const Prisoner = mongoose.model('Prisoner', prisoner);
-    const Admin = mongoose.model('Admin', admin)
+  {
+    timestamps: true,
+  }
+);
 
-    module.exports = { Prisoner, Admin };
+const Prisoner = mongoose.model("Prisoner", prisoner);
+const Admin = mongoose.model("Admin", admin);
+
+module.exports = { Prisoner, Admin };
