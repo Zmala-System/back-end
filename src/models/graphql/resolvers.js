@@ -382,13 +382,13 @@ module.exports = {
   },
   Subscription: {
     locationChangedPrisoner: {
-      subscribe: async (_, { deviceId }) => {
-        const channel = `locationChangedPrisoner_${deviceId}`;
-        return pubsub.asyncIterator(channel);
-      },
-      resolve: (payload) => {
-        return payload;
-      },
-    },
+            subscribe: async (_, { deviceId }) => {
+              const channel = `locationChangedPrisoner_${deviceId}`;
+              return pubsub.asyncIterator(channel);
+            },
+            resolve: (payload) => {
+              return payload.message;
+            },
+        },
   },
 };
