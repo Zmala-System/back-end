@@ -28,6 +28,7 @@ module.exports = gql`
   type Query {
     getPrisonerByDeviceId(Username: String!): Prisoner
     getPrisoners: [Prisoner!]
+    locationChanged(deviceId:String): Boolean
   }
 
   type Mutation {
