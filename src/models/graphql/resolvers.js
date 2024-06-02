@@ -58,6 +58,12 @@ module.exports = {
         throw new Error("Failed to retrieve prisoners");
       }
     },
+    locationChanged: async (_, { deviceId }) => {
+            const channel = `locationChangedPrisoner_${deviceId}`;
+            const prisoner = await Prisoner.findOne({ deviceId: deviceId});
+            await pubsub.publish(channel, { message: `${prisoner.currentLocations["latitude"]} ${prisoner.currentLocations["longitude"]}` });
+            return true;
+        }
   },
 
   Mutation: {
