@@ -8,6 +8,7 @@ module.exports = gql`
     authorizedLocations: [[Location]]
     currentLocations: [Location]
     deviceId: String!
+    alerts: [String!]
   }
 
   type Admin {
@@ -28,7 +29,6 @@ module.exports = gql`
   type Query {
     getPrisonerByDeviceId(Username: String!): Prisoner
     getPrisoners: [Prisoner!]
-    locationChanged(deviceId:String): Boolean
   }
 
   type Mutation {
@@ -41,17 +41,13 @@ module.exports = gql`
       deviceId: String!
       authorizedLocations: [[LocationInput]]
     ): Prisoner!
-    isInAuthorizedLocation(
-      currentPoint: LocationInput!
-      deviceId: String!
-    ): Boolean!
     updatePrisonerInfo(
       DeviceId: String!
       prisonerInput: PrisonerInput!
     ): Prisoner!
   }
   type Subscription {
-    locationChangedPrisoner(deviceId: String!): Prisoner
+    locationChangedPrisoner(deviceId: String!) : String
   }
 
   input PrisonerInput {

@@ -43,30 +43,63 @@ const StartMQTT = () => {
       "with message:",
       message.toString()
     );
-    const data = message.toString().split("#//#");
-    console.log(data);
-    let prisonerId = data[0];
-    if (data[1] === "none") {
-      data[1] = -1;
-      data[2] = -1;
+    const data = JSON.parse(message);
+    
+    let prisonerId = data.deviceID
+
+    let battery = data.battery;
+
+    let alert1 = "None";
+    let alert2 = "None";
+
+    if (battery < 15) {
+      alert1 = (`Battery is ${battery}`);
     }
-    let location = { latitude: Number(data[1]), longitude: Number(data[2]) };
-    console.log(location);
+  
+    let location = { latitude: Number(data.latitude), longitude: Number(data.longitude) };
 
     try {
-      const prisoner = await Prisoner.findOneAndUpdate(
-        { deviceId: prisonerId },
-        { $push: { currentLocations: location } },
-        { new: true }
-      ).exec();
+      const prisoner = await Prisoner.findOne({ deviceId: prisonerId}).exec();
+      
+      for (const polygon of prisoner.authorizedLocations) {
+        if (!Array.isArray(polygon) || polygon.length < 3) {
+          throw new Error(
+            "Invalid polygon. Provide a polygon with at least 3 vertices."
+          );
+        }
+
+        const formattedPolygon = polygon.map(({ latitude, longitude }) => ({
+          latitude,
+          longitude,
+        }));
+        const isInside = geolib.isPointInPolygon(
+          location,
+          formattedPolygon
+        );
+
+        if (!isInside) {
+          alert2 = "Prisoner has left the authorized area";
+        }
+      }
+
+      if (prisoner.currentLocations.length >= 10) {
+        prisoner.currentLocations = [location];
+      } 
+
+      else {
+        prisoner.currentLocations.push(location);
+      }
+
+      await prisoner.save();
+
       if (!prisoner) {
         throw new Error(`Prisoner with ID '${prisonerId}' not found.`);
       }
       const channel = `locationChangedPrisoner_${prisonerId}`;
-      console.log(
-        `Added new location for prisoner '${prisonerId}' named '${prisoner.name}': ${location}`
-      );
-      pubsub.publish(channel, { locationChangedPrisoner: prisoner });
+      const message = `${prisonerId}/${prisoner.name}/${location.latitude}/${location.longitude}/${battery}/${alert1}/${alert2}`;
+      
+      await pubsub.publish(channel, { message });
+      
     } catch (error) {
       console.error("Error updating prisoner location:", error.message);
     }

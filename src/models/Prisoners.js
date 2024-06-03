@@ -33,6 +33,7 @@ const prisoner = new prisonerSchema(
     alerts: [
       {
         type: String,
+        timestamps: true,
       },
     ],
   },

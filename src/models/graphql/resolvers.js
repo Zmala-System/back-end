@@ -58,12 +58,6 @@ module.exports = {
         throw new Error("Failed to retrieve prisoners");
       }
     },
-    locationChanged: async (_, { deviceId }) => {
-            const channel = `locationChangedPrisoner_${deviceId}`;
-            const prisoner = await Prisoner.findOne({ deviceId: deviceId});
-            await pubsub.publish(channel, { message: `${prisoner.currentLocations["latitude"]} ${prisoner.currentLocations["longitude"]}` });
-            return true;
-        }
   },
 
   Mutation: {
@@ -243,33 +237,6 @@ module.exports = {
         console.error("Token verification failed:", error.message);
         throw new AuthenticationError("Authentication failed.");
       }
-    },
-
-    async isInAuthorizedLocation(_, { currentPoint, deviceId }) {
-      const foundPrisoner = await Prisoner.findOne({ deviceId: deviceId });
-
-      for (const polygon of foundPrisoner.authorizedLocations) {
-        if (!Array.isArray(polygon) || polygon.length < 3) {
-          throw new Error(
-            "Invalid polygon. Provide a polygon with at least 3 vertices."
-          );
-        }
-
-        const formattedPolygon = polygon.map(({ latitude, longitude }) => ({
-          latitude,
-          longitude,
-        }));
-        const isInside = geolib.isPointInPolygon(
-          currentPoint,
-          formattedPolygon
-        );
-
-        if (isInside) {
-          return true;
-        }
-      }
-
-      return false;
     },
 
     async registerAdmin(
