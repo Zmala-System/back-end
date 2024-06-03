@@ -9,6 +9,7 @@ module.exports = gql`
     currentLocations: [Location]
     deviceId: String!
     alerts: [String!]
+    battery: String
   }
 
   type Admin {

@@ -36,6 +36,9 @@ const prisoner = new prisonerSchema(
         timestamps: true,
       },
     ],
+    battery: { 
+      type: String,
+    },
   },
   {
     timestamps: true,

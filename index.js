@@ -82,6 +82,16 @@ const StartMQTT = () => {
         }
       }
 
+      prisoner.battery = battery;
+      
+      if (alert1 != "None") {
+        prisoner.alerts.push(alert1);
+      }
+
+      if (alert2 != "None") {
+        prisoner.alerts.push(alert2);
+      }
+
       if (prisoner.currentLocations.length >= 10) {
         prisoner.currentLocations = [location];
       } 
