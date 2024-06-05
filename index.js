@@ -10,7 +10,7 @@ const geolib = require("geolib");
 const bodyParser = require("body-parser");
 //const dbURI = 'mongodb+srv://Safouane:Safouane2004@projet2cp.so6lhs3.mongodb.net/?retryWrites=true&w=majority&appName=Projet2CP'
 const mqtt = require("mqtt");
-const { Prisoner } = require("./src/models/Prisoners.js");
+const { Prisoner, Admin } = require("./src/models/Prisoners.js");
 const { SubscriptionServer } = require("subscriptions-transport-ws");
 const { makeExecutableSchema } = require("@graphql-tools/schema");
 const { execute, subscribe } = require("graphql");
@@ -56,6 +56,7 @@ const StartMQTT = () => {
     let alert2 = "None";
     let alert3 = "None";
     let alert4 = "inside";
+
     if (battery < 15) {
       alert1 = (`Battery is ${battery}`);
     }
@@ -64,7 +65,22 @@ const StartMQTT = () => {
     
     try {
       const prisoner = await Prisoner.findOne({ deviceId: prisonerId}).exec();
-      
+      const admin = await Admin.findById(prisoner.adminId).exec();
+
+      if (!admin) {
+        throw new Error("Admin not found");
+      }
+
+      const prisonerIndex = admin.prisoners.findIndex(
+        (prisoner) => prisoner.deviceId == prisonerId
+      );
+
+      if (prisonerIndex === -1) {
+        throw new Error("Prisoner not found");
+      }
+
+      const prisonerToUpdate = admin.prisoners[prisonerIndex];
+
       const channel1 = `locationChangedPrisoner_${prisonerId}`;
       const topic = `prisoner-alert/${prisonerId}`;
       for (const polygon of prisoner.authorizedLocations) {
@@ -82,12 +98,15 @@ const StartMQTT = () => {
             
             for (const prisoner of stalePrisoners) {
               alert3 = "Location has not been updated within the allowed period";
-              if (prisoner.alerts.length >= 10) {
+              if ((prisoner.alerts.length >= 10) && (prisonerToUpdate.alerts.length >= 10)) {
                 prisoner.alerts.shift();
+                prisonerToUpdate.alerts.shift();
               }
               prisoner.alerts.push(alert3);
-              pubsub.publish(channel1, alert3);
-              await prisoner.save();
+              prisonerToUpdate.alerts.push(alert3);
+
+              await pubsub.publish(channel1, alert3);
+              
             }
           } catch (error) {
             console.error("Error checking for stale locations:", error.message);
@@ -112,35 +131,42 @@ const StartMQTT = () => {
       }
       
       prisoner.battery = battery;
-      
+      prisonerToUpdate.battery = battery;
+
       if (alert1 != "None") {
-        if (prisoner.alerts.length >= 10) {
+        if ((prisoner.alerts.length >= 10) && (prisonerToUpdate.alerts.length >= 10)) {
           prisoner.alerts.shift();
+          prisonerToUpdate.alerts.shift();
         }
         prisoner.alerts.push(alert1);
-        pubsub.publish(channel1, alert1);
+        prisonerToUpdate.alerts.push(alert1);
+
+        await pubsub.publish(channel1, alert1);
       }
       
       if (alert2 != "None") {
-        if (prisoner.alerts.length >= 10) {
+        if ((prisoner.alerts.length >= 10) && (prisonerToUpdate.alerts.length >= 10)) {
           prisoner.alerts.shift();
+          prisonerToUpdate.alerts.shift();
         }
         prisoner.alerts.push(alert2);
-        pubsub.publish(channel, alert2);
+        prisonerToUpdate.alerts.push(alert2);
+
+        await pubsub.publish(channel, alert2);
         
       }
       
-      if (prisoner.currentLocations.length >= 10) {
+      if ((prisoner.currentLocations.length >= 10) && (prisonerToUpdate.currentLocations.length >= 10)) {
         prisoner.currentLocations.shift();
-        prisoner.currentLocations.push(location);
-      } 
-      
-      else {
-        prisoner.currentLocations.push(location);
+        prisonerToUpdate.currentLocations.shift();
       }
+
+      prisoner.currentLocations.push(location);
+      prisonerToUpdate.currentLocations.push(location);
       
       await prisoner.save();
-      
+      await admin.save();
+
       if (!prisoner) {
         throw new Error(`Prisoner with ID '${prisonerId}' not found.`);
       }

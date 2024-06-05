@@ -18,12 +18,12 @@ module.exports = {
           throw new Error(`Prisoner with name '${deviceId}' not found.`);
         }
 
-        console.log(`Prisoner found: ${foundPrisoner}`);
         return foundPrisoner;
-      } catch (error) {
-        console.error("Error retrieving prisoner by name:", error);
+      } 
+      catch (error) {
+        console.error("Error retrieving prisoner by deviceId:", error);
         throw new Error(
-          "Failed to retrieve prisoner by name. Please check your input."
+          "Failed to retrieve prisoner by deviceId. Please check your input."
         );
       }
     },
@@ -111,6 +111,7 @@ module.exports = {
           name: name,
           dateOfImprisonment: dateOfImprisonment,
           deviceId: deviceId,
+          adminId: req.userId,
         };
 
         const newPrisoner = new Prisoner(prisoner);
@@ -150,10 +151,10 @@ module.exports = {
         }
 
         const prisonerIndex = admin.prisoners.findIndex(
-          (prisoner) => prisoner.deviceId === DeviceId
+          (prisoner) => prisoner.deviceId == DeviceId
         );
 
-        if (prisonerIndex === -1) {
+        if (prisonerIndex == -1) {
           throw new Error("Prisoner not found");
         }
 

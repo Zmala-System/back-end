@@ -10,6 +10,7 @@ module.exports = gql`
     deviceId: String!
     alerts: [String!]
     battery: String
+    adminId: String
   }
 
   type Admin {

@@ -39,6 +39,9 @@ const prisoner = new prisonerSchema(
     battery: { 
       type: String,
     },
+    adminId: {
+      type: String,
+    }
   },
   {
     timestamps: true,
