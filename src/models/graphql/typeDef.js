@@ -28,7 +28,8 @@ module.exports = gql`
   }
 
   type Query {
-    getPrisonerByDeviceId(Username: String!): Prisoner
+    getPrisonerByDeviceIdnassim(deviceId: String!): Prisoner
+    getPrisonerByDeviceId(deviceId: String!): Prisoner
     getPrisoners: [Prisoner!]
   }
 

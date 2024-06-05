@@ -8,33 +8,25 @@ const { pubsub } = require("../../utils/pubsub.js");
 
 module.exports = {
   Query: {
-   // getPrisonerByDeviceIdnassim: async (_, { deviceId }, { req }) => {
+   getPrisonerByDeviceIdnassim: async (_, { deviceId }, { req }) => {
 
-     // try {
-       // const admin = await Admin.findById(req.userId).exec();
+     try {
 
-        //if (!admin) {
-          //throw new Error("Admin not found");
-        //}
+      const foundPrisoner = await Prisoner.findOne({ deviceId: deviceId }).exec();
+          
+        if (!foundPrisoner) {
+          throw new Error(`Prisoner with name '${deviceId}' not found.`);
+        }
 
-        //const Prisoners = admin.prisoners;
-        //const foundPrisoner = admin.prisoners.find(
-          //(prisoner) => prisoner.deviceId === deviceId
-       // );
-
-        //if (!foundPrisoner) {
-          //throw new Error(`Prisoner with name '${deviceId}' not found.`);
-        //}
-
-        //console.log(`Prisoner found: ${foundPrisoner}`);
-        //return foundPrisoner;
-      //} catch (error) {
-        //console.error("Error retrieving prisoner by name:", error);
-        //throw new Error(
-          //"Failed to retrieve prisoner by name. Please check your input."
-        //);
-      //}
-    //},
+        console.log(`Prisoner found: ${foundPrisoner}`);
+        return foundPrisoner;
+      } catch (error) {
+        console.error("Error retrieving prisoner by name:", error);
+        throw new Error(
+          "Failed to retrieve prisoner by name. Please check your input."
+        );
+      }
+    },
     getPrisonerByDeviceId: async (_, { deviceId }, { req }) => {
       if (!req.isAuth) {
         throw new AuthenticationError("Not authenticated");
