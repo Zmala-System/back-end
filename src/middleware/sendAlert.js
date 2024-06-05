@@ -1,8 +1,7 @@
 function mqttAlertMiddleware(mqttClient) {
   return (req, res, next) => {
     req.sendAlert = (prisonerId, message) => {
-      //const topic = `prisoner-alert/${prisonerId}`;
-      const topic = "zmalaSub";
+      const topic = `prisoner-alert/${prisonerId}`;
       mqttClient.publish(topic, message);
       console.log(`Sent alert for prisoner '${prisonerId}': ${message}`);
     };

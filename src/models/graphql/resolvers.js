@@ -8,19 +8,18 @@ const { pubsub } = require("../../utils/pubsub.js");
 
 module.exports = {
   Query: {
-   getPrisonerByDeviceIdnassim: async (_, { deviceId }, { req }) => {
+    getPrisonerByDeviceIdnassim: async (_, { deviceId }, { req }) => {
+      try {
+        const foundPrisoner = await Prisoner.findOne({
+          deviceId: deviceId,
+        }).exec();
 
-     try {
-
-      const foundPrisoner = await Prisoner.findOne({ deviceId: deviceId }).exec();
-          
         if (!foundPrisoner) {
           throw new Error(`Prisoner with name '${deviceId}' not found.`);
         }
 
         return foundPrisoner;
-      } 
-      catch (error) {
+      } catch (error) {
         console.error("Error retrieving prisoner by deviceId:", error);
         throw new Error(
           "Failed to retrieve prisoner by deviceId. Please check your input."
@@ -64,7 +63,7 @@ module.exports = {
       }
       try {
         const admin = await Admin.findById(req.userId).exec();
-        
+
         if (!admin) {
           throw new Error("Admin not found");
         }
@@ -111,7 +110,6 @@ module.exports = {
           name: name,
           dateOfImprisonment: dateOfImprisonment,
           deviceId: deviceId,
-          adminId: req.userId,
         };
 
         const newPrisoner = new Prisoner(prisoner);
@@ -123,7 +121,7 @@ module.exports = {
         return res;
       } catch (error) {
         console.error("Token verification failed:", error.message);
-        throw new AuthenticationError("Authentication failed.");
+        throw new AuthenticationError(error.message);
       }
     },
     async updatePrisonerInfo(
@@ -151,10 +149,10 @@ module.exports = {
         }
 
         const prisonerIndex = admin.prisoners.findIndex(
-          (prisoner) => prisoner.deviceId == DeviceId
+          (prisoner) => prisoner.deviceId === DeviceId
         );
 
-        if (prisonerIndex == -1) {
+        if (prisonerIndex === -1) {
           throw new Error("Prisoner not found");
         }
 
@@ -355,7 +353,7 @@ module.exports = {
             expiresIn: "2h",
           }
         );
-
+        console.log(existingAdmin.username);
         existingAdmin.token = token;
         const res = await existingAdmin.save();
 
@@ -365,6 +363,7 @@ module.exports = {
 
         return {
           userId: existingAdmin.id,
+          username: existingAdmin.username,
           token: token,
           tokenExpiration: 2,
         };
@@ -375,13 +374,13 @@ module.exports = {
   },
   Subscription: {
     locationChangedPrisoner: {
-            subscribe: async (_, { deviceId }) => {
-              const channel = `locationChangedPrisoner_${deviceId}`;
-              return pubsub.asyncIterator(channel);
-            },
-            resolve: (payload) => {
-              return payload.message;
-            },
-        },
+      subscribe: async (_, { deviceId }) => {
+        const channel = `locationChangedPrisoner_${deviceId}`;
+        return pubsub.asyncIterator(channel);
+      },
+      resolve: (payload) => {
+        return payload.message;
+      },
+    },
   },
 };
