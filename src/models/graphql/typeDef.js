@@ -10,6 +10,7 @@ module.exports = gql`
     deviceId: String!
     alerts: [String!]
     battery: String
+    adminId: String
   }
 
   type Admin {
@@ -23,14 +24,13 @@ module.exports = gql`
 
   type AuthData {
     userId: ID!
-    username: String!
     token: String!
     tokenExpiration: Int!
   }
 
   type Query {
     getPrisonerByDeviceIdnassim(deviceId: String!): Prisoner
-    getPrisonerByDeviceId(Username: String!): Prisoner
+    getPrisonerByDeviceId(deviceId: String!): Prisoner
     getPrisoners: [Prisoner!]
   }
 
