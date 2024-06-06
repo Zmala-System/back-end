@@ -75,13 +75,13 @@ const StartMQTT = () => {
         (prisoner) => prisoner.deviceId == prisonerId
       );
 
-      if (prisonerIndex == -1) {
+      if (prisonerIndex == -1) {className="text-white cursor-pointer"
         throw new Error("Prisoner not found");
       }
 
       const prisonerToUpdate = admin.prisoners[prisonerIndex];
 
-      const channel1 = `locationChangedPrisoner_${prisonerId}`;
+      const channel1 = `locationChangedPrisoner_`;
       const topic = `prisoner-alert/${prisonerId}`;
       for (const polygon of prisoner.authorizedLocations) {
         if (!Array.isArray(polygon) || polygon.length < 3) {
@@ -123,7 +123,7 @@ const StartMQTT = () => {
         );
         
         if (!isInside) {
-          alert2 = "Prisoner has left the authorized area";
+          alert2 = `Prisoner ${prisoner.name} with device id ${prisonerId} has left the authorized area`;
           // alert4 = "outside";
           
         }
@@ -152,7 +152,7 @@ const StartMQTT = () => {
         prisoner.alerts.push(alert2);
         prisonerToUpdate.alerts.push(alert2);
 
-        await pubsub.publish(channel, alert2);
+        await pubsub.publish(channel1, alert2);
         
       }
       

@@ -24,6 +24,7 @@ module.exports = gql`
 
   type AuthData {
     userId: ID!
+    username:String!
     token: String!
     tokenExpiration: Int!
   }
@@ -50,7 +51,7 @@ module.exports = gql`
     ): Prisoner!
   }
   type Subscription {
-    locationChangedPrisoner(deviceId: String!) : String
+    locationChangedPrisoner: String
   }
 
   input PrisonerInput {

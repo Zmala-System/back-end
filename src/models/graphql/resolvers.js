@@ -365,6 +365,7 @@ module.exports = {
 
         return {
           userId: existingAdmin.id,
+          username:existingAdmin.username,
           token: token,
           tokenExpiration: 2,
         };
@@ -375,8 +376,8 @@ module.exports = {
   },
   Subscription: {
     locationChangedPrisoner: {
-            subscribe: async (_, { deviceId }) => {
-              const channel = `locationChangedPrisoner_${deviceId}`;
+            subscribe: async () => {
+              const channel = `locationChangedPrisoner_`;
               return pubsub.asyncIterator(channel);
             },
             resolve: (payload) => {
